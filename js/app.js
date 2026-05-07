@@ -192,7 +192,7 @@ function createNoteCard(note, index) {
   let thumbHtml = '';
 if (note.file_type === 'image') {
   thumbHtml = `<div class="card-thumb">
-    <img src="${note.file_url}" alt="${escHtml(note.title)}" loading="lazy" />
+    <img src="${fileUrl}" alt="${escHtml(note.title)}" loading="lazy" />
   </div>`;
 } else if (note.file_type === 'pdf') {
   const canvasId = 'pdf-thumb-' + note.id;
