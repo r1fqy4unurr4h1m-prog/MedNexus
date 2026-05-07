@@ -203,7 +203,7 @@ if (note.file_type === 'image') {
     </div>
   </div>`;
   // Render PDF thumbnail setelah DOM siap
-  setTimeout(() => renderPdfThumb(note.file_url, canvasId), 100);
+  setTimeout(() => renderPdfThumb(fileUrl, canvasId), 100);
 } else {
   thumbHtml = `<div class="card-thumb">
     <span class="thumb-icon">${typeEmoji}</span>
