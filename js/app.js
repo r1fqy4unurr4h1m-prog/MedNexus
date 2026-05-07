@@ -190,11 +190,25 @@ function createNoteCard(note, index) {
   const fileUrl = getFileUrl(note.stored_name);
 
   let thumbHtml = '';
-  if (note.file_type === 'image') {
-    thumbHtml = `<div class="card-thumb"><img src="${fileUrl}" alt="${escHtml(note.title)}" loading="lazy" /></div>`;
-  } else {
-    thumbHtml = `<div class="card-thumb"><span class="thumb-icon">${typeEmoji}</span></div>`;
-  }
+if (note.file_type === 'image') {
+  thumbHtml = `<div class="card-thumb">
+    <img src="${note.file_url}" alt="${escHtml(note.title)}" loading="lazy" />
+  </div>`;
+} else if (note.file_type === 'pdf') {
+  const canvasId = 'pdf-thumb-' + note.id;
+  thumbHtml = `<div class="card-thumb pdf-thumb-wrap">
+    <canvas id="${canvasId}" class="pdf-canvas"></canvas>
+    <div class="pdf-thumb-loading" id="loading-${canvasId}">
+      <div class="spinner-sm"></div>
+    </div>
+  </div>`;
+  // Render PDF thumbnail setelah DOM siap
+  setTimeout(() => renderPdfThumb(note.file_url, canvasId), 100);
+} else {
+  thumbHtml = `<div class="card-thumb">
+    <span class="thumb-icon">${typeEmoji}</span>
+  </div>`;
+}
 
   card.innerHTML = `
     ${thumbHtml}
@@ -569,7 +583,51 @@ function toast(message, type = 'info') {
     t.addEventListener('animationend', () => t.remove());
   }, 3500);
 }
+/* ===== PDF THUMBNAIL RENDERER ===== */
+async function renderPdfThumb(fileUrl, canvasId) {
+  const canvas = document.getElementById(canvasId);
+  const loading = document.getElementById('loading-' + canvasId);
+  if (!canvas) return;
 
+  try {
+    // Load PDF.js dari CDN
+    if (!window.pdfjsLib) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    const pdf = await window.pdfjsLib.getDocument(fileUrl).promise;
+    const page = await pdf.getPage(1);
+
+    const viewport = page.getViewport({ scale: 1 });
+    const thumbWidth = 320;
+    const scale = thumbWidth / viewport.width;
+    const scaledViewport = page.getViewport({ scale });
+
+    canvas.width = scaledViewport.width;
+    canvas.height = scaledViewport.height;
+
+    await page.render({
+      canvasContext: canvas.getContext('2d'),
+      viewport: scaledViewport
+    }).promise;
+
+    if (loading) loading.style.display = 'none';
+    canvas.style.opacity = '1';
+  } catch (err) {
+    // Fallback ke ikon jika gagal
+    if (canvas && canvas.parentElement) {
+      canvas.parentElement.innerHTML = '<span class="thumb-icon">📄</span>';
+    }
+  }
+}
 /* ===== ROUTER ===== */
 function router(page) {
   if (page === 'home') {
