@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedNexus — Berbagi Catatan Kedokteran</title>
+  <meta name="description"
+    content="Platform berbagi catatan kedokteran bersama — upload, temukan, dan sukai catatan terbaik dari komunitas." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="#" class="logo" onclick="router('home')">
+        <span class="logo-icon">✦</span>
+        MedNexus
+      </a>
+      <div class="nav-actions">
+        <button class="btn-ghost" id="sortBtn">⇅ Urutkan</button>
+        <div class="sort-dropdown" id="sortDropdown">
+          <button onclick="setSortAndClose('newest')" class="sort-opt active" data-sort="newest">📅 Terbaru</button>
+          <button onclick="setSortAndClose('likes')" class="sort-opt" data-sort="likes">❤️ Paling Disukai</button>
+        </div>
+        <button class="btn-outline" id="uploadNavBtn" onclick="openUploadModal()">+ Upload</button>
+        <div id="authButtons">
+          <button class="btn-ghost" onclick="openAuthModal('login')">Masuk</button>
+          <button class="btn-primary" onclick="openAuthModal('register')">Daftar</button>
+        </div>
+        <div id="userInfo" style="display:none">
+          <span class="user-badge" id="userBadge"></span>
+          <button class="btn-ghost" onclick="logout()">Keluar</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SEARCH BAR -->
+  <div class="search-section">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="Cari catatan, judul, atau nama..." />
+      <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+    </div>
+  </div>
+
+  <!-- ANGKATAN FILTER -->
+  <div class="angkatan-section">
+    <div class="angkatan-filter" id="angkatanFilter">
+      <button class="angkatan-chip active" data-angkatan="all" onclick="setAngkatan('all')">📚 Semua</button>
+      <button class="angkatan-chip chip-23" data-angkatan="23" onclick="setAngkatan('23')">🟣 Angkatan '23</button>
+      <button class="angkatan-chip chip-24" data-angkatan="24" onclick="setAngkatan('24')">🔵 Angkatan '24</button>
+      <button class="angkatan-chip chip-25" data-angkatan="25" onclick="setAngkatan('25')">🟢 Angkatan '25</button>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero" id="heroSection">
+    <div class="hero-content">
+      <h1 class="hero-title">Bagikan<br /><em>Catatanmu</em></h1>
+      <p class="hero-sub">Platform berbagi catatan kedokteran bersama — upload, temukan, dan sukai catatan terbaik dari
+        komunitas MedNexus.</p>
+    </div>
+    <div class="hero-deco">
+      <div class="deco-card" style="--r:-8deg;--c:#dce8f5">📄</div>
+      <div class="deco-card" style="--r:5deg;--c:#e8f0f7">🖼️</div>
+      <div class="deco-card" style="--r:-3deg;--c:#f0e8d8">📝</div>
+    </div>
+  </div>
+
+  <!-- NOTES GRID -->
+  <main class="main-section">
+    <div class="section-header">
+      <h2 id="sectionTitle">Catatan Terbaru</h2>
+      <span id="noteCount" class="note-count"></span>
+    </div>
+    <div class="notes-grid" id="notesGrid">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Memuat catatan...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- UPLOAD MODAL -->
+  <div class="modal-overlay" id="uploadModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeUploadModal()">✕</button>
+      <h2 class="modal-title">Upload Catatan</h2>
+      <p class="modal-sub">Bagikan catatanmu dengan komunitas MedNexus</p>
+
+      <div class="form-group">
+        <label>Nama Kamu *</label>
+        <input type="text" id="uploaderName" class="form-input" placeholder="Masukkan namamu" />
+      </div>
+      <div class="form-group">
+        <label>Angkatan *</label>
+        <div class="angkatan-select-group">
+          <label class="angkatan-radio">
+            <input type="radio" name="angkatan" value="23" checked />
+            <span class="angkatan-radio-label ar-23">Angkatan '23</span>
+          </label>
+          <label class="angkatan-radio">
+            <input type="radio" name="angkatan" value="24" />
+            <span class="angkatan-radio-label ar-24">Angkatan '24</span>
+          </label>
+          <label class="angkatan-radio">
+            <input type="radio" name="angkatan" value="25" />
+            <span class="angkatan-radio-label ar-25">Angkatan '25</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Judul Catatan *</label>
+        <input type="text" id="noteTitle" class="form-input" placeholder="Contoh: Anatomi Sistem Kardiovaskular" />
+      </div>
+      <div class="form-group">
+        <label>Deskripsi (opsional)</label>
+        <textarea id="noteDesc" class="form-input form-textarea" placeholder="Jelaskan isi catatan ini..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>File Catatan *</label>
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon">☁</div>
+          <p class="drop-text">Seret file ke sini atau <span class="drop-link">pilih file</span></p>
+          <p class="drop-hint">PDF, DOCX, TXT, Gambar — Maks 10MB</p>
+          <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.gif,.webp" />
+        </div>
+        <div class="file-preview" id="filePreview" style="display:none">
+          <span class="file-prev-icon" id="filePrevIcon"></span>
+          <div>
+            <p class="file-prev-name" id="filePrevName"></p>
+            <p class="file-prev-size" id="filePrevSize"></p>
+          </div>
+          <button class="file-remove" onclick="removeFile()">✕</button>
+        </div>
+      </div>
+
+      <div class="upload-progress" id="uploadProgress" style="display:none">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p class="progress-text" id="progressText">Mengupload...</p>
+      </div>
+
+      <button class="btn-primary btn-full" id="uploadBtn" onclick="submitUpload()">Upload Catatan ↗</button>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal modal-sm">
+      <button class="modal-close" onclick="closeAuthModal()">✕</button>
+      <div id="loginForm">
+        <h2 class="modal-title">Masuk</h2>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUsername" class="form-input" placeholder="Username kamu" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="Password kamu" />
+        </div>
+        <button class="btn-primary btn-full" onclick="doLogin()">Masuk</button>
+        <p class="auth-switch">Belum punya akun? <span onclick="switchAuth('register')">Daftar di sini</span></p>
+      </div>
+      <div id="registerForm" style="display:none">
+        <h2 class="modal-title">Daftar</h2>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="regUsername" class="form-input" placeholder="Buat username unik" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" class="form-input" placeholder="Min. 6 karakter" />
+        </div>
+        <button class="btn-primary btn-full" onclick="doRegister()">Daftar Sekarang</button>
+        <p class="auth-switch">Sudah punya akun? <span onclick="switchAuth('login')">Masuk di sini</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTE DETAIL MODAL -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal modal-xl">
+      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+
+</html>
